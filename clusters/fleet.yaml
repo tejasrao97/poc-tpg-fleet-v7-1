@@ -20,13 +20,13 @@ clusters:
     instances:
       orders-db:
         instance:
-          postgresVersion: postgres-16.9
+          postgresVersion: postgres-16.8
           highAvailability:
             enabled: true
             readReplicas: 1
       billing-db:
         instance:
-          postgresVersion: postgres-16.9
+          postgresVersion: postgres-16.8
           highAvailability:
             enabled: true
             readReplicas: 1
@@ -36,13 +36,13 @@ clusters:
     instances:
       orders-db:
         instance:
-          postgresVersion: postgres-16.9
+          postgresVersion: postgres-16.8
           highAvailability:
             enabled: true
             readReplicas: 1
       billing-db:
         instance:
-          postgresVersion: postgres-16.9
+          postgresVersion: postgres-16.8
           highAvailability:
             enabled: true
             readReplicas: 1
@@ -52,13 +52,13 @@ clusters:
     instances:
       orders-db:
         instance:
-          postgresVersion: postgres-16.9
+          postgresVersion: postgres-16.8
           highAvailability:
             enabled: true
             readReplicas: 1
       billing-db:
         instance:
-          postgresVersion: postgres-16.9
+          postgresVersion: postgres-16.8
           highAvailability:
             enabled: true
             readReplicas: 1

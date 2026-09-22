@@ -1,0 +1,19 @@
+# kube-prometheus-stack 91.4.0 on each target cluster (standalone option).
+# Prometheus keeps 2 hours locally and forwards everything to the hub.
+# Installed as Helm release kps by workflows/scripts/helm-addons.sh, which sets
+# prometheus.prometheusSpec.externalLabels.cluster and the remote write URL of
+# the hub Prometheus (tpg-settings hubPrometheusRemoteWriteUrl) per cluster.
+grafana:
+  enabled: false
+alertmanager:
+  enabled: false
+kubeStateMetrics:
+  enabled: false        # the tpg-ksm release provides kube-state-metrics
+defaultRules:
+  create: false
+prometheus:
+  prometheusSpec:
+    retention: 2h
+    podMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false

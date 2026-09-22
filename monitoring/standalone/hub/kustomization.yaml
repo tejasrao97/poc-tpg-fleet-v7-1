@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - servicemonitor-argo-workflows.yaml
+  - servicemonitor-vault.yaml
+  - prometheusrule-tpg.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"
+configMapGenerator:
+  - name: tpg-fleet-dashboard
+    files:
+      - dashboards/tpg-fleet.json

@@ -1,0 +1,131 @@
+# Shared templates referenced with templateRef by every tpg workflow.
+# Callers must define the toolsImage parameter and the scripts volume.
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: tpg-lib
+  namespace: argo
+spec:
+  templates:
+  - name: init-run
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "false"
+    container:
+      image: "{{workflow.parameters.toolsImage}}"
+      command: [bash, /scripts/init-run.sh]
+      args:
+        - "{{workflow.name}}"
+        - "{{workflow.uid}}"
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+
+  - name: discover
+    inputs:
+      parameters:
+        - name: clusters
+        # tpg-day0 dry run: planned clusters/fleet.yaml as JSON ({}: read Git)
+        - name: fleet
+          value: "{}"
+    outputs:
+      parameters:
+        - name: inventory
+          valueFrom:
+            path: /tmp/inventory.json
+            default: "[]"
+        - name: instanceItems
+          valueFrom:
+            path: /tmp/instance-items.json
+            default: "[]"
+    container:
+      image: "{{workflow.parameters.toolsImage}}"
+      command: [bash, /scripts/discover.sh]
+      args:
+        - "{{workflow.name}}"
+        - "{{inputs.parameters.clusters}}"
+        - "{{inputs.parameters.fleet}}"
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+
+  - name: plan-batches
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "false"
+    inputs:
+      parameters:
+        - name: requirePrecheck
+        - name: maxParallel
+    outputs:
+      parameters:
+        - name: batches
+          valueFrom:
+            path: /tmp/batches.json
+            default: "[]"
+        - name: hasBatches
+          valueFrom:
+            path: /tmp/has-batches
+            default: "false"
+    container:
+      image: "{{workflow.parameters.toolsImage}}"
+      command: [bash, /scripts/plan-batches.sh]
+      args:
+        - "{{workflow.name}}"
+        - "{{inputs.parameters.requirePrecheck}}"
+        - "{{inputs.parameters.maxParallel}}"
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+
+  - name: split-first
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "false"
+    inputs:
+      parameters:
+        - name: batches
+    outputs:
+      parameters:
+        - name: first
+          valueFrom:
+            path: /tmp/first.json
+            default: "[]"
+        - name: rest
+          valueFrom:
+            path: /tmp/rest.json
+            default: "[]"
+        - name: hasRest
+          valueFrom:
+            path: /tmp/has-rest
+            default: "false"
+    container:
+      image: "{{workflow.parameters.toolsImage}}"
+      command: [bash, /scripts/split-first.sh]
+      args:
+        - "{{inputs.parameters.batches}}"
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+
+  - name: report
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "false"
+    inputs:
+      parameters:
+        - name: mode
+          value: cluster
+    container:
+      image: "{{workflow.parameters.toolsImage}}"
+      command: [bash, /scripts/report.sh]
+      args:
+        - "{{workflow.name}}"
+        - "{{workflow.status}}"
+        - "{{inputs.parameters.mode}}"
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+
+  - name: approve
+    suspend: {}

@@ -1,0 +1,56 @@
+# One operator Application per cluster: tpg-<cluster>-operator.
+#
+# Generated only for registered clusters (label tpg.fleet/managed=true) that
+# have clusters.<cluster>.operator.version in clusters/fleet.yaml. tpg-day0 and
+# tpg-upgrade (component=operator) write that version; tpg-delete-apps removes it.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tpg-operator
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - matrix:
+        generators:
+          - matrix:
+              generators:
+                - clusters:
+                    selector:
+                      matchLabels:
+                        tpg.fleet/managed: "true"
+                - git:
+                    repoURL: https://github.com/tejasrao97/poc-tpg-fleet-v7-1.git
+                    revision: main
+                    files:
+                      - path: clusters/fleet.yaml
+          - list:
+              # [{"operatorVersion": "<tag>"}] when the cluster declares a version, otherwise []
+              elementsYaml: >-
+                {{- $version := dig "clusters" .name "operator" "version" "" . -}}
+                {{- if $version -}}{{- toJson (list (dict "operatorVersion" $version)) -}}{{- else -}}[]{{- end -}}
+  template:
+    metadata:
+      name: "tpg-{{.name}}-operator"
+      labels:
+        tpg.fleet/cluster: "{{.name}}"
+        tpg.fleet/wave: '{{index .metadata.labels "tpg.fleet/wave"}}'
+        tpg.fleet/component: operator
+    spec:
+      project: tpg
+      source:
+        repoURL: tanzu-sql-postgres.packages.broadcom.com
+        chart: vmware-sql-postgres-operator
+        targetRevision: "{{.operatorVersion}}"
+        helm:
+          valuesObject:
+            dockerRegistrySecretName: regsecret
+      destination:
+        server: "{{.server}}"
+        namespace: tanzu-postgres-operator
+      # No "automated" block by design: the workflows decide when to sync.
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

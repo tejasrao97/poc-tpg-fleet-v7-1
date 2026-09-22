@@ -1,0 +1,50 @@
+# kube-prometheus-stack 91.4.0 on the hub (standalone option), Helm release kps in
+# namespace monitoring, installed by tpg-aks-infra scripts/steps/45-helm-addons.sh.
+prometheus:
+  service:
+    type: LoadBalancer
+    annotations:
+      # Private IP in the POC VNet, reachable by the target clusters
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  prometheusSpec:
+    enableRemoteWriteReceiver: true
+    retention: 15d
+    externalLabels:
+      cluster: aks-tpg-hub
+    podMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: managed-csi-premium
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 100Gi
+
+grafana:
+  admin:
+    # Created by helm-addons.sh before the install (GRAFANA_ADMIN_PASSWORD or generated):
+    # keys admin-user and admin-password
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  persistence:
+    enabled: true
+    size: 10Gi
+  sidecar:
+    datasources:
+      uid: prometheus
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
+alertmanager:
+  enabled: true

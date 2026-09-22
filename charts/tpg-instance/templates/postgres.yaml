@@ -1,0 +1,24 @@
+apiVersion: sql.tanzu.vmware.com/v1
+kind: Postgres
+metadata:
+  name: {{ .Values.instance.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  postgresVersion:
+    name: {{ .Values.instance.postgresVersion }}
+  storageClassName: {{ .Values.instance.storageClassName }}
+  storageSize: {{ .Values.instance.storageSize }}
+  walStorageSize: {{ .Values.instance.walStorageSize }}
+  serviceType: {{ .Values.instance.serviceType }}
+  persistentVolumeClaimPolicy: retain
+  imagePullSecret:
+    name: regsecret
+  highAvailability:
+    enabled: {{ .Values.instance.highAvailability.enabled }}
+    readReplicas: {{ .Values.instance.highAvailability.readReplicas }}
+  backupLocation:
+    name: {{ .Values.instance.name }}-backup-location
+  resources:
+    {{- toYaml .Values.instance.resources | nindent 4 }}

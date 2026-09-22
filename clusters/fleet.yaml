@@ -1,0 +1,40 @@
+# Postgres deployments per target cluster: the only per-cluster file in this
+# repository. Every cluster uses clusters/_template/cluster.yaml and
+# clusters/_template/instance.yaml; entries here hold only the differences.
+#
+#   clusters.<cluster>                  cluster registered by tpg-aks-infra
+#                                       (Argo CD label tpg.fleet/managed=true)
+#     operator.version                  required: operator chart version (OCI tag)
+#     cluster / backup                  optional overrides of _template/cluster.yaml
+#     instances.<instance>              one Postgres instance, namespace pg-<instance>
+#       instance / backup               overrides of _template/instance.yaml
+#
+# The workflows edit this file (tpg-day0, tpg-upgrade, tpg-scale-instance,
+# tpg-delete-apps and tpg-delete-instance). Edit it by
+# hand only while no workflow is running, then commit and push.
+# The deployment wave is the tpg.fleet/wave label on the cluster Secret.
+clusters:
+  aks-tpg-poc-01:
+    operator:
+      version: v4.5.0
+    instances:
+      orders-db:
+        instance:
+          postgresVersion: postgres-16.9
+      billing-db:
+        instance:
+          postgresVersion: postgres-16.9
+  aks-tpg-poc-02:
+    operator:
+      version: v4.5.0
+    instances:
+      orders-db:
+        instance:
+          postgresVersion: postgres-16.9
+  aks-tpg-poc-03:
+    operator:
+      version: v4.5.0
+    instances:
+      orders-db:
+        instance:
+          postgresVersion: postgres-16.9

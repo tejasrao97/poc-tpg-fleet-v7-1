@@ -1,0 +1,53 @@
+# Chart defaults. The tpg-instances ApplicationSet adds clusters/_template/cluster.yaml,
+# clusters/_template/instance.yaml and the clusters/fleet.yaml overrides on top.
+cluster:
+  # Set by the tpg-instances ApplicationSet (informational)
+  name: ""
+
+instance:
+  name: ""
+  postgresVersion: ""
+  storageClassName: tpg-data-retain
+  storageSize: 20Gi
+  walStorageSize: 10Gi
+  serviceType: ClusterIP
+  highAvailability:
+    enabled: true
+    readReplicas: 1
+  resources:
+    data:
+      requests:
+        cpu: "1"
+        memory: 2Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+
+backup:
+  container: ""
+  endpoint: blob.core.windows.net
+  fullRetention: 4
+  diffRetention: 6
+  # Used by the tpg-backup-retention workflow, not by the chart
+  retentionDays: 35
+  # PostgresBackupLocation spec.storage.azure. enableSSL is written always
+  # (true is kept by the API server). forcePathStyle, caBundle and
+  # additionalParameters are written only when set, because the CRD drops the
+  # zero value and the Application would never reach Synced otherwise.
+  enableSSL: true
+  forcePathStyle: false
+  caBundle: ""
+  # spec.additionalParameters: extra pgBackRest settings, for example
+  # {process-max: "4"}. Empty means the key is not written at all.
+  additionalParameters: {}
+
+# Vault Secrets Operator: credentials in the instance namespace
+# (templates/vault-secrets.yaml). The VaultAuth is created on every target by
+# helm-addons.sh (component vso).
+vault:
+  authRef: tpg-vault/tpg-vault
+  mount: tpg
+  refreshAfter: 60s
+
+registry:
+  host: tanzu-sql-postgres.packages.broadcom.com

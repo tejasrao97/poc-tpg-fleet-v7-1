@@ -34,7 +34,7 @@ backup:
   # (true is kept by the API server). forcePathStyle, caBundle and
   # additionalParameters are written only when set, because the CRD drops the
   # zero value and the Application would never reach Synced otherwise.
-  enableSSL: true
+  enableSSL: false
   forcePathStyle: false
   caBundle: ""
   # spec.additionalParameters: extra pgBackRest settings, for example
